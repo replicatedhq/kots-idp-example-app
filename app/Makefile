@@ -6,6 +6,6 @@ build:
 	docker tag replicatedhq/kots-idp-example-app:$(VERSION) replicatedhq/kots-idp-example-app:latest
 
 .PHONY: push
-build:
+push:
 	docker push replicatedhq/kots-idp-example-app:$(VERSION)
 	docker push replicatedhq/kots-idp-example-app:latest
