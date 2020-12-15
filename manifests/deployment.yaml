@@ -35,7 +35,7 @@ spec:
               value: groups
             - name: RESTRICTED_GROUPS
               value: |
-                {{repl IdentityServiceRoles | keys }}
+                {{repl IdentityServiceRoles | keys | toJson }}
       hostAliases:
         - ip: 172.17.0.1
           hostnames:
