@@ -20,6 +20,7 @@ import (
 
 	oidc "github.com/coreos/go-oidc"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
@@ -36,6 +37,8 @@ type app struct {
 	// Does the provider use "offline_access" scope to request a refresh token
 	// or does it use "access_type=offline" (e.g. Google)?
 	offlineAsScope bool
+
+	restrictedGroups []string
 
 	client *http.Client
 }
@@ -91,33 +94,40 @@ func (d debugTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func cmd() *cobra.Command {
 	var (
-		a         app
-		issuerURL string
-		listen    string
-		tlsCert   string
-		tlsKey    string
-		rootCAs   string
-		debug     bool
+		a app
 	)
 	c := cobra.Command{
 		Use:   "app",
 		Short: "An example OpenID Connect client",
 		Long:  "",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 0 {
 				return errors.New("surplus arguments provided")
+			}
+
+			a.clientID = viper.GetString("client-id")
+			a.clientSecret = viper.GetString("client-secret")
+			a.redirectURI = viper.GetString("redirect-uri")
+
+			if restrictedGroups := strings.TrimSpace(viper.GetString("restricted-groups")); restrictedGroups != "" {
+				if err := json.Unmarshal([]byte(restrictedGroups), &a.restrictedGroups); err != nil {
+					return fmt.Errorf("parse restricted-groups: %v", err)
+				}
 			}
 
 			u, err := url.Parse(a.redirectURI)
 			if err != nil {
 				return fmt.Errorf("parse redirect-uri: %v", err)
 			}
-			listenURL, err := url.Parse(listen)
+			listenURL, err := url.Parse(viper.GetString("listen"))
 			if err != nil {
 				return fmt.Errorf("parse listen address: %v", err)
 			}
 
-			if rootCAs != "" {
+			if rootCAs := viper.GetString("issuer-root-ca"); rootCAs != "" {
 				client, err := httpClientForRootCAs(rootCAs)
 				if err != nil {
 					return err
@@ -125,7 +135,7 @@ func cmd() *cobra.Command {
 				a.client = client
 			}
 
-			if debug {
+			if viper.GetBool("debug") {
 				if a.client == nil {
 					a.client = &http.Client{
 						Transport: debugTransport{http.DefaultTransport},
@@ -141,9 +151,9 @@ func cmd() *cobra.Command {
 
 			// TODO(ericchiang): Retry with backoff
 			ctx := oidc.ClientContext(context.Background(), a.client)
-			provider, err := oidc.NewProvider(ctx, issuerURL)
+			provider, err := oidc.NewProvider(ctx, viper.GetString("issuer"))
 			if err != nil {
-				return fmt.Errorf("failed to query provider %q: %v", issuerURL, err)
+				return fmt.Errorf("failed to query provider %q: %v", viper.GetString("issuer"), err)
 			}
 
 			var s struct {
@@ -182,26 +192,36 @@ func cmd() *cobra.Command {
 
 			switch listenURL.Scheme {
 			case "http":
-				log.Printf("listening on %s", listen)
+				log.Printf("listening on %s", viper.GetString("listen"))
 				return http.ListenAndServe(listenURL.Host, nil)
 			case "https":
-				log.Printf("listening on %s", listen)
-				return http.ListenAndServeTLS(listenURL.Host, tlsCert, tlsKey, nil)
+				log.Printf("listening on %s", viper.GetString("listen"))
+				return http.ListenAndServeTLS(listenURL.Host, viper.GetString("tls-cert"), viper.GetString("tls-key"), nil)
 			default:
-				return fmt.Errorf("listen address %q is not using http or https", listen)
+				return fmt.Errorf("listen address %q is not using http or https", viper.GetString("listen"))
 			}
 		},
 	}
-	c.Flags().StringVar(&a.clientID, "client-id", "example-app", "OAuth2 client ID of this application.")
-	c.Flags().StringVar(&a.clientSecret, "client-secret", "ZXhhbXBsZS1hcHAtc2VjcmV0", "OAuth2 client secret of this application.")
-	c.Flags().StringVar(&a.redirectURI, "redirect-uri", "http://127.0.0.1:5555/callback", "Callback URL for OAuth2 responses.")
-	c.Flags().StringVar(&issuerURL, "issuer", "http://127.0.0.1:5556/dex", "URL of the OpenID Connect issuer.")
-	c.Flags().StringVar(&listen, "listen", "http://127.0.0.1:5555", "HTTP(S) address to listen at.")
-	c.Flags().StringVar(&tlsCert, "tls-cert", "", "X509 cert file to present when serving HTTPS.")
-	c.Flags().StringVar(&tlsKey, "tls-key", "", "Private key for the HTTPS cert.")
-	c.Flags().StringVar(&rootCAs, "issuer-root-ca", "", "Root certificate authorities for the issuer. Defaults to host certs.")
-	c.Flags().BoolVar(&debug, "debug", false, "Print all request and responses from the OpenID Connect issuer.")
+	c.Flags().String("client-id", "example-app", "OAuth2 client ID of this application.")
+	c.Flags().String("client-secret", "ZXhhbXBsZS1hcHAtc2VjcmV0", "OAuth2 client secret of this application.")
+	c.Flags().String("redirect-uri", "http://127.0.0.1:5555/callback", "Callback URL for OAuth2 responses.")
+	c.Flags().String("issuer", "http://127.0.0.1:5556/dex", "URL of the OpenID Connect issuer.")
+	c.Flags().String("listen", "http://127.0.0.1:5555", "HTTP(S) address to listen at.")
+	c.Flags().String("tls-cert", "", "X509 cert file to present when serving HTTPS.")
+	c.Flags().String("tls-key", "", "Private key for the HTTPS cert.")
+	c.Flags().String("issuer-root-ca", "", "Root certificate authorities for the issuer. Defaults to host certs.")
+	c.Flags().String("extra-scopes", "", "Extra scopes to request from the server.")
+	c.Flags().String("restricted-groups", "", "Groups to from which to restrict login.")
+	c.Flags().Bool("debug", false, "Print all request and responses from the OpenID Connect issuer.")
+
+	cobra.OnInitialize(initConfig)
+
 	return &c
+}
+
+func initConfig() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("_", "."))
 }
 
 func main() {
@@ -227,6 +247,10 @@ func (a *app) oauth2Config(scopes []string) *oauth2.Config {
 
 func (a *app) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var scopes []string
+	if extraScopes := viper.GetString("extra-scopes"); extraScopes != "" {
+		scopes = strings.Split(extraScopes, " ")
+	}
+	fmt.Println("scopes", scopes)
 	if extraScopes := r.FormValue("extra_scopes"); extraScopes != "" {
 		scopes = strings.Split(extraScopes, " ")
 	}
@@ -243,7 +267,7 @@ func (a *app) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	authCodeURL := ""
-	scopes = append(scopes, "openid", "profile", "email")
+	scopes = append(scopes, "openid", "email")
 	if r.FormValue("offline_access") != "yes" {
 		authCodeURL = a.oauth2Config(scopes).AuthCodeURL(exampleAppState)
 	} else if a.offlineAsScope {
@@ -328,6 +352,29 @@ func (a *app) handleCallback(w http.ResponseWriter, r *http.Request) {
 	if err := idToken.Claims(&claims); err != nil {
 		http.Error(w, fmt.Sprintf("error decoding ID token claims: %v", err), http.StatusInternalServerError)
 		return
+	}
+
+	if len(a.restrictedGroups) > 0 {
+		var groupClaims struct {
+			Groups []string
+		}
+		if err := idToken.Claims(&groupClaims); err != nil {
+			http.Error(w, fmt.Sprintf("error decoding ID token claims: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		var found bool
+		for _, group := range groupClaims.Groups {
+			for _, restrictedGroup := range a.restrictedGroups {
+				if group == restrictedGroup {
+					found = true
+				}
+			}
+		}
+		if !found {
+			http.Error(w, "user is not a member of the restricted groups", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	buff := new(bytes.Buffer)

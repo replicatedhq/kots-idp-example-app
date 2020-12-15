@@ -18,19 +18,24 @@ spec:
         - name: idp-app
           image: replicated/kots-idp-example-app:latest
           imagePullPolicy: Always
-          command:
-            - ./example-app
-          args:
-            - "--listen=http://0.0.0.0:5555"
-            - --issuer={{repl IdentityServiceIssuerURL }}
-            - --client-id={{repl IdentityServiceClientID }}
-            - --client-secret={{repl IdentityServiceClientSecret }}
-            - --redirect-uri=http://{{repl ConfigOption "ingress_hostname"}}/callback
           ports:
             - containerPort: 5555
           env:
-            - name: testing
-              value: test123456
+            - name: LISTEN
+              value: http://0.0.0.0:5555
+            - name: ISSUER
+              value: repl{{ IdentityServiceIssuerURL }}
+            - name: CLIENT_ID
+              value: repl{{ IdentityServiceClientID }}
+            - name: CLIENT_SECRET
+              value: repl{{ IdentityServiceClientSecret }} # TODO: secret
+            - name: REDIRECT_URI
+              value: http://{{repl ConfigOption "ingress_hostname"}}/callback
+            - name: EXTRA_SCOPES
+              value: groups
+            - name: RESTRICTED_GROUPS
+              value: |
+                {{repl identityServiceRestrictedGroups | toJson }}
       hostAliases:
         - ip: 172.17.0.1
           hostnames:
