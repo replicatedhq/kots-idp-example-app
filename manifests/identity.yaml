@@ -1,0 +1,7 @@
+apiVersion: kots.io/v1beta1
+kind: Identity
+metadata:
+  name: identity
+spec:
+  oidcRedirectUris:
+    - http://{{repl ConfigOption "identity_hostname"}}/callback
