@@ -5,3 +5,7 @@ metadata:
 spec:
   oidcRedirectUris:
     - http://{{repl ConfigOption "ingress_hostname"}}/callback
+  roles:
+    - id: access
+      name: Access
+      description: Restrict access to IDP Example App
