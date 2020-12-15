@@ -1,15 +1,22 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: ingress
+  name: idp-app
   annotations:
-    kots.io/when: '{{repl ConfigOptionEquals "use_ingress" "1" }}'
+    kubernetes.io/ingress.allow-http: 'true'
+    kots.io/placeholder: repl{{ printf "'true'" }}repl{{ ConfigOption "annotations" | nindent 4 }}
+  labels:
+    app: idp-app
 spec:
   rules:
-  - http:
-      paths:
-        - path: /
-          backend:
-            serviceName: example-nginx
-            servicePort: 80
-
+    - host: repl{{ or (ConfigOption "ingress_hostname") "~" }}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: idp-app
+              servicePort: 80
+          - path: /dex
+            backend:
+              serviceName: ethan-kots-dex
+              servicePort: 5556

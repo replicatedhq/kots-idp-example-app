@@ -1,14 +1,16 @@
 apiVersion: kots.io/v1beta1
 kind: Application
 metadata:
-  name: app-slug
+  name: idp-example-app
 spec:
-  title: App Name
+  title: IDP Example App
   icon: https://raw.githubusercontent.com/cncf/artwork/master/projects/kubernetes/icon/color/kubernetes-icon-color.png
   statusInformers:
-    - deployment/example-nginx
+    - ingress/idp-app
+    - service/idp-app
+    - deployment/idp-app
   ports:
-    - serviceName: "example-nginx"
+    - serviceName: "idp-app"
       servicePort: 80
       localPort: 8888
-      applicationUrl: "http://example-nginx"
+      applicationUrl: "http://idp-app"

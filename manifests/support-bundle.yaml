@@ -8,8 +8,7 @@ spec:
     - clusterResources: {}
     - logs:
         selector:
-          - app=example
-          - component=nginx
+          - app=idp-app
         namespace: '{{repl Namespace }}'
         limits:
           maxAge: 30d

@@ -1,32 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: example-nginx
+  name: idp-app
   labels:
-    app: example
-    component: nginx
+    app: idp-app
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: example
-      component: nginx
+      app: idp-app
   template:
     metadata:
       labels:
-        app: example
-        component: nginx
+        app: idp-app
     spec:
       containers:
-        - name: nginx
-          image: nginx
-          envFrom:
-          - configMapRef:
-              name: example-config
-          resources:
-            limits:
-              memory: '256Mi'
-              cpu: '500m'
-            requests:
-              memory: '32Mi'
-              cpu: '100m'
-
+        - name: idp-app
+          image: emosbaugh/idp-example-app
+          imagePullPolicy: Always
+          command:
+            - ./example-app
+          args:
+            - "--listen=http://0.0.0.0:5555"
+            - --issuer={{repl IdentityServiceIssuerURL }}
+            - --client-id={{repl IdentityServiceClientID }}
+            - --client-secret={{repl IdentityServiceClientSecret }}
+            - --redirect-uri=http://{{repl ConfigOption "ingress_hostname"}}/callback
+          ports:
+            - containerPort: 5555
+          env:
+            - name: testing
+              value: test123456
+      hostAliases:
+        - ip: 172.17.0.1
+          hostnames:
+            - myapp.kotsadmdevenv.com

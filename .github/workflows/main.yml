@@ -19,6 +19,16 @@ jobs:
     - name: Get branch name
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       id: get_branch
+
+    - uses: azure/docker-login@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    - name: Build and push the app
+      run: make -C app build push VERSION=$VERSION
+      env:
+        VERSION: ${{ steps.get_tag.outputs.tag }}
+
     - name: Lint the release
       uses: docker://replicated/vendor-cli:latest
       with:
