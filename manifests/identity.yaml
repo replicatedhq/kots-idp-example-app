@@ -4,4 +4,4 @@ metadata:
   name: identity
 spec:
   oidcRedirectUris:
-    - http://{{repl ConfigOption "identity_hostname"}}/callback
+    - http://{{repl ConfigOption "ingress_hostname"}}/callback
