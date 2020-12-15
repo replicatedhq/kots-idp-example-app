@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/go-oidc"
+	oidc "github.com/coreos/go-oidc"
 	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
 )

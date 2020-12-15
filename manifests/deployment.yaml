@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: idp-app
-          image: emosbaugh/idp-example-app
+          image: replicatedhq/kots-idp-example-app:latest
           imagePullPolicy: Always
           command:
             - ./example-app

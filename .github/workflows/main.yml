@@ -25,9 +25,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     - name: Build and push the app
-      run: make -C app build push VERSION=$VERSION
-      env:
-        VERSION: ${{ steps.get_tag.outputs.tag }}
+      run: make -C app build push VERSION=latest
 
     - name: Lint the release
       uses: docker://replicated/vendor-cli:latest
