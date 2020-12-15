@@ -221,7 +221,7 @@ func cmd() *cobra.Command {
 
 func initConfig() {
 	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("_", "."))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 }
 
 func main() {
@@ -250,7 +250,6 @@ func (a *app) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if extraScopes := viper.GetString("extra-scopes"); extraScopes != "" {
 		scopes = strings.Split(extraScopes, " ")
 	}
-	fmt.Println("scopes", scopes)
 	if extraScopes := r.FormValue("extra_scopes"); extraScopes != "" {
 		scopes = strings.Split(extraScopes, " ")
 	}
