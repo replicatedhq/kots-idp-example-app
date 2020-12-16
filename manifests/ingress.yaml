@@ -16,7 +16,7 @@ spec:
             backend:
               serviceName: idp-app
               servicePort: 80
-          - path: /dex
+          - path: /oidcserver
             backend:
               serviceName: repl{{ IdentityServiceName }}
               servicePort: repl{{ IdentityServicePort }}

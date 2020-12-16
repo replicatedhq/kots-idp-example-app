@@ -24,7 +24,7 @@ spec:
             - name: LISTEN
               value: http://0.0.0.0:5555
             - name: ISSUER
-              value: repl{{ IdentityServiceIssuerURL }}
+              value: http://{{repl ConfigOption "ingress_hostname"}}/oidcserver
             - name: CLIENT_ID
               value: repl{{ IdentityServiceClientID }}
             - name: CLIENT_SECRET
