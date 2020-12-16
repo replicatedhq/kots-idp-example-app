@@ -3,6 +3,7 @@ kind: Identity
 metadata:
   name: identity
 spec:
+  requireIdentityProvider: true
   oidcRedirectUris:
     - http://{{repl ConfigOption "ingress_hostname"}}/callback
   roles:
