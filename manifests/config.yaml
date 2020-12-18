@@ -18,3 +18,25 @@ spec:
           description: |
             Use this textarea to provide annotations specific to your ingress controller.
             For example, `kubernetes.io/ingress.class: alb` when using the ALB ingress controller.
+        - name: tls_json
+          title: TLS JSON
+          type: textarea
+          hidden: true
+          value: |-
+            repl{{ $ca := genCA (ConfigOption "ingress_hostname") 365 }}
+            repl{{ $tls := dict "ca" $ca }}
+            repl{{ $cert := genSignedCert (ConfigOption "ingress_hostname") (list ) (list (ConfigOption "ingress_hostname")) 365 $ca }}
+            repl{{ $_ := set $tls "cert" $cert }}
+            repl{{ toJson $tls }}
+        - name: tls_ca
+          title: Signing Authority
+          type: textarea
+          value: repl{{ fromJson (ConfigOption "tls_json") | dig "ca" "Cert" "" }}
+        - name: tls_cert
+          title: TLS Cert
+          type: textarea
+          value: repl{{ fromJson (ConfigOption "tls_json") | dig "cert" "Cert" "" }}
+        - name: tls_key
+          title: TLS Key
+          type: textarea
+          value: repl{{ fromJson (ConfigOption "tls_json") | dig "cert" "Key" "" }}

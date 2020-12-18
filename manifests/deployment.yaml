@@ -20,17 +20,24 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 5555
+          volumeMounts:
+            - name: tls-ca-volume
+              mountPath: /idp-example
+              readOnly: true
+          args: ["--issuer-root-ca=/idp-example/tls.ca"]
           env:
+            - name: CERT_SHA
+              value: repl{{ sha256sum (ConfigOption "tls_cert") }}
             - name: LISTEN
               value: http://0.0.0.0:5555
             - name: ISSUER
-              value: http://{{repl ConfigOption "ingress_hostname"}}/oidcserver
+              value: https://{{repl ConfigOption "ingress_hostname"}}/oidcserver
             - name: CLIENT_ID
               value: repl{{ IdentityServiceClientID }}
             - name: CLIENT_SECRET
               value: repl{{ IdentityServiceClientSecret }} # TODO: secret
             - name: REDIRECT_URI
-              value: http://{{repl ConfigOption "ingress_hostname"}}/callback
+              value: https://{{repl ConfigOption "ingress_hostname"}}/callback
             - name: EXTRA_SCOPES
               value: groups
             - name: RESTRICTED_GROUPS
@@ -40,3 +47,7 @@ spec:
         - ip: 172.17.0.1
           hostnames:
             - myapp.kotsadmdevenv.com
+      volumes:
+        - name: tls-ca-volume
+          secret:
+            secretName: idp-app-ca
