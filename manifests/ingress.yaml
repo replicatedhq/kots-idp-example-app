@@ -3,11 +3,15 @@ kind: Ingress
 metadata:
   name: idp-app
   annotations:
-    kubernetes.io/ingress.allow-http: 'true'
+    kubernetes.io/ingress.allow-http: 'false'
     kots.io/placeholder: repl{{ printf "'true'" }}repl{{ ConfigOption "annotations" | nindent 4 }}
   labels:
     app: idp-app
 spec:
+  tls:
+    - hosts:
+      - repl{{ ConfigOption "ingress_hostname" }}
+      secretName: idp-ingress-tls
   rules:
     - host: repl{{ or (ConfigOption "ingress_hostname") "~" }}
       http:

@@ -4,9 +4,9 @@ metadata:
   name: identity
 spec:
   requireIdentityProvider: true
-  identityIssuerURL: http://{{repl ConfigOption "ingress_hostname"}}/oidcserver
+  identityIssuerURL: https://{{repl ConfigOption "ingress_hostname"}}/oidcserver
   oidcRedirectUris:
-    - http://{{repl ConfigOption "ingress_hostname"}}/callback
+    - https://{{repl ConfigOption "ingress_hostname"}}/callback
   roles:
     - id: access
       name: Access
