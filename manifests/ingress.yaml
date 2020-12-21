@@ -4,6 +4,7 @@ metadata:
   name: idp-app
   annotations:
     kubernetes.io/ingress.allow-http: 'false'
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
     kots.io/placeholder: repl{{ printf "'true'" }}repl{{ ConfigOption "annotations" | nindent 4 }}
   labels:
     app: idp-app
