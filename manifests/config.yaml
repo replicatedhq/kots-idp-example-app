@@ -22,7 +22,7 @@ spec:
           title: TLS JSON
           type: textarea
           hidden: true
-          value: |-
+          default: |-
             repl{{ $ca := genCA (ConfigOption "ingress_hostname") 365 }}
             repl{{ $tls := dict "ca" $ca }}
             repl{{ $cert := genSignedCert (ConfigOption "ingress_hostname") (list ) (list (ConfigOption "ingress_hostname")) 365 $ca }}
@@ -31,12 +31,12 @@ spec:
         - name: tls_ca
           title: Signing Authority
           type: textarea
-          value: repl{{ fromJson (ConfigOption "tls_json") | dig "ca" "Cert" "" }}
+          default: repl{{ fromJson (ConfigOption "tls_json") | dig "ca" "Cert" "" }}
         - name: tls_cert
           title: TLS Cert
           type: textarea
-          value: repl{{ fromJson (ConfigOption "tls_json") | dig "cert" "Cert" "" }}
+          default: repl{{ fromJson (ConfigOption "tls_json") | dig "cert" "Cert" "" }}
         - name: tls_key
           title: TLS Key
           type: textarea
-          value: repl{{ fromJson (ConfigOption "tls_json") | dig "cert" "Key" "" }}
+          default: repl{{ fromJson (ConfigOption "tls_json") | dig "cert" "Key" "" }}
