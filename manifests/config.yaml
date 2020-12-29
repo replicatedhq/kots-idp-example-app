@@ -10,8 +10,9 @@ spec:
       items:
         - name: ingress_hostname
           title: Ingress Hostname
-          help_text: If desired, enter the hostname for ingress to this application. You can enter the IP of this instance, or a DNS hostname.
+          help_text: Enter the hostname for ingress to this application. This must be a DNS hostname.
           type: text
+          required: true
         - name: annotations
           type: textarea
           title: Annotations
