@@ -6,7 +6,6 @@ spec:
   title: IDP Example App
   icon: https://raw.githubusercontent.com/cncf/artwork/master/projects/kubernetes/icon/color/kubernetes-icon-color.png
   statusInformers:
-    - ingress/idp-app
     - service/idp-app
     - deployment/idp-app
   ports:
